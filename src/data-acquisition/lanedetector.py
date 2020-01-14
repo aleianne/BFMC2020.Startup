@@ -13,6 +13,9 @@ class LaneDetector(WorkerProcess):
 
     def _init_threads(self): 
 
+    def detection(self):
+        
+
 
     
     
