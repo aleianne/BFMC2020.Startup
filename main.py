@@ -64,6 +64,11 @@ allProcesses = list()
 if enableStream:
     camStR, camStS = Pipe(duplex = False)           # camera  ->  streamer
 
+    # TODO remember to add the new pipes that connect the camera process to the lane detector process
+    # TODO remember to add all the pipes that interconnect each process in order to create the interprocess communication, 
+    # TODO remember to add declare the new process here and then to add the process inside the allProcess list: in this way all the process can be handled by 
+    # this main script
+
     if enableCameraSpoof:
         camSpoofer = CameraSpooferProcess([],[camStS],'vid')
         allProcesses.append(camSpoofer)
