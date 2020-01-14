@@ -11,10 +11,4 @@ class SensorDataHandler(WorkerProcess):
     def _init_threads(self):
         # in this method add the different threads contained into this process
         self.threads.append(SensorDataAcquirer(inPs))
-
-    # this method is used to initialize the sensor data handler before reading the information from the sensor handler process
-    def run(self): 
-
-
-    def stop(self)
     

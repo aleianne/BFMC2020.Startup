@@ -2,9 +2,8 @@
 # Camera handler process and parsing in it in order to be manipulated. 
 # In this way is possible to apply all the lane detection algorithm,  
 
-from src.utils.templates import WorkerProcess
-
-from multiprocessing import Process
+from src.utils.templates.workerprocess import WorkerProcess
+from src.dataacquisition.cameraacquirer import CameraAcquirer
 
 class LaneDetector(WorkerProcess): 
 
@@ -12,8 +11,8 @@ class LaneDetector(WorkerProcess):
         super(LaneDetector, self).__init__(inPs, outPs)
 
     def _init_threads(self): 
+      self.threads.append = CameraAcquirer(inPs, outPs)
 
-    def detection(self):
         
 
 
