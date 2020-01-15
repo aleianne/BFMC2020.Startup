@@ -1,5 +1,5 @@
 from src.utils.templates.workerprocess import WorkerProcess
-from src.data-acquisition.sensordataacquirer import SensorDataAcquirer
+from src.dataacquisition.sensordataacquirer import SensorDataAcquirer
 
 class SensorDataHandler(WorkerProcess):
 
@@ -7,8 +7,6 @@ class SensorDataHandler(WorkerProcess):
         # TODO check if this process should be considered a daemon process
         super(SensorDataHandler, self).__init__(inPs, outPs)
 
-
     def _init_threads(self):
         # in this method add the different threads contained into this process
-        self.threads.append(SensorDataAcquirer(inPs))
-    
+        self.threads.append(SensorDataAcquirer(self.inPs, self.outPs))

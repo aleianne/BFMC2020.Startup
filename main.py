@@ -48,10 +48,14 @@ from src.utils.camerastreamer.camerastreamer       import CameraStreamer
 from src.utils.cameraspoofer.cameraspooferprocess  import CameraSpooferProcess
 from src.utils.remotecontrol.remotecontrolreceiver import RemoteControlReceiver
 
+from src.dataacquisition.lanedetector import LaneDetector
+from src.dataacquisition.sensordatahandler import SensorDataHandler
+
 # =============================== CONFIG =================================================
-enableStream        =  True
+enableStream        =  False
 enableCameraSpoof   =  False 
-enableRc            =  True
+enableRc            =  False
+enableExec          =  True
 #================================ PIPES ==================================================
 
 
@@ -89,7 +93,26 @@ if enableStream:
 # gpsProc = GpsProcess([], [gpsBrS])
 # allProcesses.append(gpsProc)
 
+if enableExec: 
+    # create a connection between the camera and the data acquisition
+    cameraStrR, cameraStrS = Pipe(duplex=False)
+    # create a connection between the serial handler and the Lane Detector
+    commandR, commandS = Pipe(duplex=False)
+    # create a connection between the serial handler and the Sensor Data Acquirer
+    # measure acquisition
+    msrAcqR, msrAcqS = Pipe(duplex=False)
 
+    cameraProc = CameraProcess([], [cameraStrS])
+    allProcesses.append(cameraProc)
+
+    laneDetecProc = LaneDetector([cameraStrR], [commandS])
+    allProcesses.append(laneDetecProc)
+
+    serialhandler = SerialHandler([commandR], [msrAcqS])
+    allProcesses.append(serialhandler)
+
+    dataHandler = SensorDataHandler([msrAcqR], [])
+    allProcesses.append(dataHandler)
 
 # ===================================== CONTROL ==========================================
 #------------------- remote controller -----------------------

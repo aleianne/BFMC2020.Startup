@@ -40,8 +40,8 @@ class WorkerThread(Thread):
             output pipes 
         """
         super(WorkerThread,self).__init__()
-        self.inQs = inQs
-        self.outQs = outQs
+        self.inPs = inPs
+        self.outPs = outPs
 
         self.threads = list()
 
