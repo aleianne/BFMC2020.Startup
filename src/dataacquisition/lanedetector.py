@@ -15,4 +15,4 @@ class LaneDetector(WorkerProcess):
 
     def _init_threads(self): 
         self.threads.append(CameraAcquirer(self.inPs, self.outPs))
-        self.threads.append(TestCmdThread(self.outPs))
+        #self.threads.append(TestCmdThread(self.outPs))

@@ -13,7 +13,7 @@ class CameraAcquirer(WorkerThread):
     def run(self):
         while True:
             try: 
-                for in_connection in inPs:
+                for in_connection in self.inPs:
                     # iterate over all the possible pipe incoming into the process
                     data_read = in_connection.recv()
                     time = data_read[0][0]
@@ -21,7 +21,7 @@ class CameraAcquirer(WorkerThread):
                     print("Image timestamp " + str(time))
                     # this function should return the information about the lane detected on the floor
                     # lane_detector(image)  
-            except Exception:
+            except EOFError:
             	# TODO remember to add a stack trace in this way i can check the correct trace of the exception 
-            	# print("There is a problem with the acquisition of data from the camera")
-                pass
+                print("CameraAcquirer: the incoming connection has been closed")
+                return

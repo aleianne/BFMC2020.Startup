@@ -13,17 +13,17 @@ class SensorDataAcquirer(WorkerThread):
     def run(self):
         # check if the incoming connection is only one
         if len(self.inPs) != 1: 
-            print("SensorDataAcquirer should have only one icoming pipe")
+            print("SensorDataAcquirer should have only one incoming pipe")
             return
 
         inConn = self.inPs[0]    
         while self._running: 
             try:
-                data = pipe.recv()
+                data = inConn.recv()
                 if type(data) == "str":
-                    print("Data received from the Serial Handle" + data)
+                    print("Data received from the Serial Handler" + data)
                 else: 
                     print("Data type received is "+ type(data)) 
-            except Exception:
-                #print("SensorDataAcquirer raised an exception")       
-                pass
+            except EOFError:
+                print("SensorDataAcquire: the incoming connection has been closed")       
+                return 
