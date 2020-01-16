@@ -48,7 +48,7 @@ from src.utils.camerastreamer.camerastreamer       import CameraStreamer
 from src.utils.cameraspoofer.cameraspooferprocess  import CameraSpooferProcess
 from src.utils.remotecontrol.remotecontrolreceiver import RemoteControlReceiver
 
-from src.dataacquisition.lanedetector import LaneDetector
+from src.dataacquisition.lanedetectionprocess import LaneDetectionProcess
 from src.dataacquisition.sensordatahandler import SensorDataHandler
 
 # =============================== CONFIG =================================================
@@ -105,7 +105,7 @@ if enableExec:
     cameraProc = CameraProcess([], [cameraStrS])
     allProcesses.append(cameraProc)
 
-    laneDetecProc = LaneDetector([cameraStrR], [commandS])
+    laneDetecProc = LaneDetectionProcess([cameraStrR], [commandS])
     allProcesses.append(laneDetecProc)
 
     serialhandler = SerialHandler([commandR], [msrAcqS])

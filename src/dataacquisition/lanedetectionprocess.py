@@ -8,10 +8,10 @@ from src.dataacquisition.testcmdthread import TestCmdThread
 
 from threading import Thread
 
-class LaneDetector(WorkerProcess): 
+class LaneDetectionProcess(WorkerProcess): 
 
     def __init__(self, inPs, outPs): 
-        super(LaneDetector, self).__init__(inPs, outPs)
+        super(LaneDetectionProcess, self).__init__(inPs, outPs)
 
     def _init_threads(self): 
         self.threads.append(CameraAcquirer(self.inPs, self.outPs))
