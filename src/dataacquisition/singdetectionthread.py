@@ -1,10 +1,15 @@
 from src.utils.templates.threadwithstop import ThreadWithStop
+from src.dataacquisition.imageprocessing.imagesegmentation import ImageSegmentation
+from src.dataacquisition.imageprocessing.signclassification import SignClassification
 
 class SignDetectionThread(ThreadWithStop):
 
     def __init__(inPs):
         super(SignDetectionThread, self).__init__()
         self.inPs = inPs
+        self.seg = ImageSegmentation()
+        self.dnn = SignClassification()
+
 
     def run():
 
@@ -23,6 +28,9 @@ class SignDetectionThread(ThreadWithStop):
                 data = inConn.recv()
                 timestamp = data[0][0]
                 image = data[1]
+
+                
+
             except EOFError: 
                 print("SignDetectionThread: input connection has been closed")
                 self._running = False

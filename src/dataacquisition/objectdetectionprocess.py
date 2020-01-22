@@ -1,4 +1,5 @@
 from src.utils.templates.workerprocess import WorkerProcess
+from src.dataacquisition.singdetectionthread import SignDetectionThread
 
 class ObjectDetectionProcess(WorkerProcess):
 
@@ -6,6 +7,7 @@ class ObjectDetectionProcess(WorkerProcess):
         super(ObjectDetection, self).__init(inPs, outPs)
 
     def _init_threads(self):
+        self.threads.append(SignDetectionThread(self.inPs))
         self.threads.append()
 
     

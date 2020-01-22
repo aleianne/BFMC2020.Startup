@@ -52,8 +52,8 @@ class CameraStreamer(WorkerProcess):
             List of output pipes (not used at the moment)
         """
         super(CameraStreamer,self).__init__( inPs, outPs)
-
-        self.serverIp   =  '192.168.1.102' # PC ip
+        
+        self.serverIp   =  '192.168.43.40' # PC ip
         self.port       =  2244            # com port
         
     # ===================================== RUN ==========================================
