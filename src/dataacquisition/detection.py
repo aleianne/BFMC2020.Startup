@@ -37,6 +37,9 @@ def cannyedge(img):
     return cv2.Canny(img, 100, 200)
 
 
+    
+
+
 # DRAW THE GENERATED LINES ON THE IMAGE
 def draw_lines(img, lines_1, color=[255, 0, 0], thickness=3):
     if lines_1 is None:
