@@ -1,12 +1,10 @@
+from moviepy.editor import VideoFileClip
+
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
-import PIL
 import math
-from moviepy.editor import VideoFileClip
-from IPython.display import HTML
-
 
 # image = mpimg.imread('road1.jpg')
 
@@ -35,9 +33,6 @@ def region_of_interest(img, vertices):
 # CANNY EDGE DETECTION
 def cannyedge(img):
     return cv2.Canny(img, 100, 200)
-
-
-    
 
 
 # DRAW THE GENERATED LINES ON THE IMAGE
@@ -250,8 +245,10 @@ def lane_detector(image):
 # plt.imshow(line_image)
 # plt.show()
 
-# video1 = VideoFileClip('Lane Detection Test Video 01_input.mp4')
-video1 = VideoFileClip('solidYellowLeft.mp4')
-video_output = 'Lane Detection Test Video 01_output.mp4'
-the_result = video1.fl_image(lane_detector)
-the_result.write_videofile(video_output, audio=False)
+
+def test_lane_detection():
+  # video1 = VideoFileClip('Lane Detection Test Video 01_input.mp4')
+  video1 = VideoFileClip('solidYellowLeft.mp4')
+  video_output = 'Lane Detection Test Video 01_output.mp4'
+  the_result = video1.fl_image(lane_detector)
+  the_result.write_videofile(video_output, audio=False)

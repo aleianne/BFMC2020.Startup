@@ -1,10 +1,13 @@
 from src.utils.templates.threadwithstop import ThreadWithStop
+from src.dataacquisition.imageprocessing.edgedetection import EdgeDetection
 
 class CameraAcquirer(ThreadWithStop):
 
     def __init__(self, inConn):
     	super(CameraAcquirer, self).__init__()
-        self.inConn = inConn
+      self.inConn = inConn
+
+      self.edge_detection = EdgeDetection()
 
     def run(self):
 
@@ -14,9 +17,13 @@ class CameraAcquirer(ThreadWithStop):
                 data_read = inConn.recv()
                 time = data_read[0][0]
                 image = data_read[1]
-                # print("Image timestamp " + str(time))
-                # this function should return the information about the lane detected on the floor
-                # lane_detector(image)  
+
+                if not self.edge_detection.getLaneDetected:
+                  self.edge_detection.laneDetection(image)
+                else: 
+                  # track the image 
+                  pass
+
             except EOFError:
                 print("CameraAcquirer: the incoming connection has been closed")
                 self._running = False

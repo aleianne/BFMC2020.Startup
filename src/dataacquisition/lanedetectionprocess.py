@@ -27,5 +27,4 @@ class LaneDetectionProcess(WorkerProcess):
         self.outConn = self.outPs[0]
 
         self.threads.append(CameraAcquirer(self.inConn))
-
         #self.threads.append(TestCmdThread(self.outPs))
