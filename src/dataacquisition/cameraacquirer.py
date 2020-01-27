@@ -4,17 +4,17 @@ from src.dataacquisition.imageprocessing.edgedetection import EdgeDetection
 class CameraAcquirer(ThreadWithStop):
 
     def __init__(self, inConn):
-    	super(CameraAcquirer, self).__init__()
-      self.inConn = inConn
+        super(CameraAcquirer, self).__init__()
+        self.inConn = inConn
 
-      self.edge_detection = EdgeDetection()
+        self.edge_detection = EdgeDetection()
 
     def run(self):
 
         while self._running:
             try: 
-                # iterate over all the possible pipe incoming into the process
-                data_read = inConn.recv()
+                # iterate all over the possible pipe incoming into the process
+                data_read = self.inConn.recv()
                 time = data_read[0][0]
                 image = data_read[1]
 
@@ -28,5 +28,5 @@ class CameraAcquirer(ThreadWithStop):
                 print("CameraAcquirer: the incoming connection has been closed")
                 self._running = False
 
-    def stop():
+    def stop(self):
         self._running = False

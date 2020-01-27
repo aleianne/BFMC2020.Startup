@@ -1,5 +1,5 @@
 from src.utils.templates.workerprocess import WorkerProcess
-from src.dataacquisition.singdetectionthread import SignDetectionThread
+from src.dataacquisition.signdetectionthread import SignDetectionThread
 
 class ObjectDetectionProcess(WorkerProcess):
 

@@ -6,15 +6,15 @@ class ObjectDetectorThread(ThreadWithStop):
         super(ObjectDetectorThread, self).__init__()
         self.inConn = inConn                            # input pipe connection
 
-    def run():
+    def run(self):
         while self._running == True:
             try: 
                 data_in = self._inConn.recv()
                 timestamp = data_in[0][0]
                 image = data_in[1]
             except EOFError: 
-                print("ObjectDetectorThread: innput connection has been closed")
+                print("ObjectDetectorThread: input connection has been closed")
                 self._running = False
         
-    def stop():
+    def stop(self):
         self._running = False
