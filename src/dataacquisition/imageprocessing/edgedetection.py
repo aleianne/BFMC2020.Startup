@@ -1,3 +1,5 @@
+from src.dataacquisition.imageprocessing.line import Line
+
 import cv2
 import math
 import numpy as np
@@ -6,27 +8,30 @@ import numpy as np
 class EdgeDetection:
 
     def __init__(self):
-        self.right_lane_x = []
-        self.left_lane_x = []
-
-        self.right_lane_y = []
-        self.left_lane_y = []
+        self.right_lanes = []
+        self.left_lanes = []
 
         self.lane_detected = False
 
     # DEFINITION OF GET/SET METHODS
 
-    def getRightLaneX(self):
-        return self.right_lane_x
+    def getLastDetectedRLane(self):
+        if len(self.right_lanes) != 0:
+            return self.right_lanes[-1]
+        else:
+            return None
 
-    def getRightLaneY(self):
-        return self.right_lane_y
+    def getLastDetectedLLane(self):
+        if len(self.left_lanes) != 0:
+            return self.left_lanes[-1]
+        else:
+            return None
 
-    def getLeftLaneX(self):
-        return self.left_lane_x
+    def getRightLanes(self):
+        return self.right_lanes
 
-    def getLeftLaneY(self):
-        return self.left_lane_y
+    def getLeftLanes(self):
+        return self.left_lanes
 
     def getLaneDetected(self):
         return self.lane_detected
@@ -73,9 +78,8 @@ class EdgeDetection:
             (image.shape[1], image.shape[0]),
         ]
 
-        # convert the image in grayscale and than extract the region of interest
-        gray_image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
-        canny_image = self._cannyEdge(gray_image)
+        # convert the image in grays cale and than extract the region of interest
+        canny_image = self._cannyEdge(image)
         cropped_image = self._regionOfInterest(
             canny_image,
             np.array([region_of_interest_vertices], np.int32),
@@ -83,6 +87,12 @@ class EdgeDetection:
 
         # generate the lines using the hough transform
         line_segments = self._detectLineSegments(cropped_image)
+
+        left_lane_x = []
+        left_lane_y = []
+
+        right_lane_x = []
+        right_lane_y = []
 
         for line in line_segments:
             for x1, y1, x2, y2 in line:
@@ -92,31 +102,44 @@ class EdgeDetection:
                     continue
 
                 if slope <= 0:
-                    self.left_lane_x.extend([x1, x2])
-                    self.left_lane_y.extend([y1, y2])
+                    left_lane_x.extend([x1, x2])
+                    left_lane_y.extend([y1, y2])
                 else:
-                    self.right_lane_x.extend([x1, x2])
-                    self.right_lane_y.extend([y1, y2])
+                    right_lane_x.extend([x1, x2])
+                    right_lane_y.extend([y1, y2])
 
         min_y = int(image.shape[0] * (3 / 5))
         max_y = image.shape[0]
 
-        poly_left = np.poly1d(np.polyfit(
-            self.left_lane_y,
-            self.left_lane_x,
-            deg=1
-        ))
+        if (len(left_lane_x) == 0) and (len(right_lane_x) == 0):
+            self.lane_detected = False
+            return
 
-        left_x_start = int(poly_left(max_y))
-        left_x_end = int(poly_left(min_y))
+        if len(left_lane_x) != 0:
+            poly_left = np.poly1d(np.polyfit(
+                left_lane_y,
+                left_lane_x,
+                deg=1
+            ))
 
-        poly_right = np.poly1d(np.polyfit(
-            self.right_lane_y,
-            self.right_lane_x,
-            deg=1
-        ))
+            left_x_start = int(poly_left(max_y))
+            left_x_end = int(poly_left(min_y))
 
-        # right_x_start = int(poly_right(max_y))
-        # right_x_end = int(poly_right(min_y))
-        #
-        # return line_image
+            left_lane = Line(left_x_start, min_y, left_x_end, max_y)
+            self.left_lanes.append(left_lane)
+
+        if len(right_lane_x) == 0:
+            poly_right = np.poly1d(np.polyfit(
+                right_lane_y,
+                right_lane_x,
+                deg=1
+            ))
+
+            right_x_start = int(poly_right(max_y))
+            right_x_end = int(poly_right(min_y))
+
+            right_lane = Line(right_x_start, min_y, right_x_end, max_y)
+            self.right_lanes.append(right_lane)
+
+        self.lane_detected = True
+        return self.lane_detected
