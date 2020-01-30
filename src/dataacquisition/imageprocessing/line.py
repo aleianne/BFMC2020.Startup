@@ -11,6 +11,8 @@ class Line:
         den = self.x1 - self.x2
         self.slope = num / den
 
+    # DEFINITION OF GET/SET METHODS
+
     def getSlope(self):
         return self.slope
 
@@ -25,4 +27,18 @@ class Line:
 
     def getPointy2(self):
         return self.y2
+
+    def getInitialPoint(self):
+        if self.y1 <= self.y2:
+            return self.x1, self.y1
+        else:
+            return self.x2, self.y2
+
+    def getTerminalPoint(self):
+        if self.y1 >= self.y2:
+            return self.x1, self.y1
+        else:
+            return self.x2, self.y2
+
+
 

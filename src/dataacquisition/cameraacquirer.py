@@ -19,7 +19,7 @@ class CameraAcquirer(ThreadWithStop):
         self.edge_detection = EdgeDetection()
 
         self.last_ts = None                     # last frame timestamp
-        self.last_dts = None                    # last frame with lane detected timestamp
+        self.last_dts = None                    # last frame with last lane detected timestamp
 
     def run(self):
 
@@ -50,8 +50,8 @@ class CameraAcquirer(ThreadWithStop):
                     # before the actual tracking operation, we need to apply canny edge detector
                     edges_img = cv2.Canny(gray_image, 100, 200)
 
-                    self.right_lane_tracker.trackLane(edges_img)
-                    self.left_lane_tracker.trackLane(edges_img)
+                    right_lane = self.right_lane_tracker.trackLane(edges_img)
+                    left_lane = self.left_lane_tracker.trackLane(edges_img)
 
                 # update the last timestamp
                 self.last_ts = time

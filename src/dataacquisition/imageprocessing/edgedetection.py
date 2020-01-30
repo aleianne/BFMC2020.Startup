@@ -128,7 +128,7 @@ class EdgeDetection:
             left_lane = Line(left_x_start, min_y, left_x_end, max_y)
             self.left_lanes.append(left_lane)
 
-        if len(right_lane_x) == 0:
+        if len(right_lane_x) != 0:
             poly_right = np.poly1d(np.polyfit(
                 right_lane_y,
                 right_lane_x,
