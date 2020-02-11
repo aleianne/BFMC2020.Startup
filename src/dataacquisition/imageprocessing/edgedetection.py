@@ -7,11 +7,16 @@ import numpy as np
 
 class EdgeDetection:
 
-    def __init__(self):
+    def __init__(self, cam_debugger, debug=False):
         self.right_lanes = []
         self.left_lanes = []
 
         self.lane_detected = False
+
+        # camera debugger
+        self.cam_debugger = cam_debugger
+        self.debug = debug
+        self.class_name = EdgeDetection.__name__
 
     # DEFINITION OF GET/SET METHODS
 
@@ -113,6 +118,8 @@ class EdgeDetection:
 
         if (len(left_lane_x) == 0) and (len(right_lane_x) == 0):
             self.lane_detected = False
+            if self.debug:
+                self.cam_debugger.write_log(self.class_name, "No lane has been detected")
             return
 
         if len(left_lane_x) != 0:
@@ -127,6 +134,10 @@ class EdgeDetection:
 
             left_lane = Line(left_x_start, min_y, left_x_end, max_y)
             self.left_lanes.append(left_lane)
+        else:
+            if self.debug:
+                self.cam_debugger.write_log(self.class_name, "scrivere qualcosa")
+
 
         if len(right_lane_x) != 0:
             poly_right = np.poly1d(np.polyfit(
@@ -140,6 +151,10 @@ class EdgeDetection:
 
             right_lane = Line(right_x_start, min_y, right_x_end, max_y)
             self.right_lanes.append(right_lane)
+        else:
+            if self.debug:
+                self.cam_debugger.write_log(self.class_name, "scrivere qualcos'altro ahhahahah")
+
 
         self.lane_detected = True
         return self.lane_detected

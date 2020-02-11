@@ -28,6 +28,8 @@ class Line:
     def getPointy2(self):
         return self.y2
 
+    # DEFINITION OF PUBLIC METHODS
+
     def getInitialPoint(self):
         if self.y1 <= self.y2:
             return self.x1, self.y1

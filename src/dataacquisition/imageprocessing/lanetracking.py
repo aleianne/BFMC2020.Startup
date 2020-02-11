@@ -2,9 +2,12 @@ from src.dataacquisition.imageprocessing.line import Line
 
 from threading import Thread
 
+import numpy as np
+
+
 class LaneTracking:
 
-    def __init__(self):
+    def __init__(self, cam_debugger, debug=False):
         self.lane = None
 
         self.bx = -1
@@ -12,11 +15,16 @@ class LaneTracking:
         self.tx = -1
         self.ty = -1
 
-        # maximum range in pixel
-        self.range_x = 10
-        self.range_y = 10
+        self.cam_debugger = cam_debugger
+        self.debug = debug
+        self.class_name = LaneTracking.__name__
+
+        # displacement in pixel
+        self.r_x = 5
+        self.r_y = 5
 
     # DEFINITION OF GET/SET METHODS
+
     def setLane(self, lane):
         self.lane = lane
 
@@ -26,29 +34,67 @@ class LaneTracking:
     # DEFINITION OF PRIVATE METHODS
 
     def _removeNoise(self, img):
-        # this method should perform some kind of noise reduction
-        # detecting and removing outliers
         pass
+
+    def _detectMaximumIntensity(self, img, y_coord):
+        img_row = img[y_coord, :]
+        v = np.amax(img_row)
+        index_x = np.where(v)
+        return v, index_x
+
+    def _searchLocalEndPoint2(self, img):
+        size = img.shape[0]
+
+        for y in range(0, size - 1):
+            v, x = self._detectMaximumIntensity(img, y)
+            if v > 200:
+                return x, y
+
+        return -1, -1
+
+    def _searchLocalEndPoint(self, img):
+        center_y = int(img.shape[0] / 2)
+        upper_y = center_y - 1
+        lower_y = center_y + 1
+
+        v, x = self._detectMaximumIntensity(img, center_y)
+        if v > 200:
+            return x, center_y
+
+        while upper_y > 0:
+            v, x = self._detectMaximumIntensity(img, upper_y)
+            if v > 200:
+                return x, upper_y
+
+            v, x = self._detectMaximumIntensity(img, lower_y)
+            if v > 200:
+                return x, lower_y
+
+            upper_y -= 1
+            lower_y += 1
+
+        return -1, -1
 
     def _localBeginPointSearch(self, img):
-
-        pass
+        if img.size[0] >= 2 * self.r_y and img.size[1] >= 2 * self.r_x:
+            self.bx, self.by = self._searchLocalEndPoint(img)
+        else:
+            self.bx, self.by = self._searchLocalEndPoint2(img)
 
     def _localTerminalPointSearch(self, img):
-        pass
-
-    # this method is called inside a thread, in this way we can split our computation since
-    # the local search is performed in two different areas. Starting from the point passed to the function
-    # try to extract a ROI of 10 px starting from the end-point
-    def _localSearchDetection(self, img):
-        pass
+        if img.size[0] >= 2 * self.r_x and img.size[1] >= 2 * self.r_x:
+            self.tx, self.ty = self._searchLocalEndPoint(img)
+        else:
+            self.tx, self.ty = self._searchLocalEndPoint2(img)
 
     def _detectRegionOfInterest(self, img, x, y):
-        # crop the image in order to detect the local search area
-        # centered around the point (x, y)
-        x_v = int(self.range_x / 2)
-        y_v = int(self.range_y / 2)
-        roi = img[x - x_v:x + x_v, y - y_v:y + y_v]
+        right_x_disp = x + self.r_x + 1
+        left_x_disp = x - self.r_x
+
+        right_y_disp = y + self.r_y + 1
+        left_y_disp = y + self.r_y
+
+        roi = img[left_x_disp:right_x_disp, left_y_disp:right_y_disp]
         return roi
 
     # DEFINITION OF PUBLIC METHODS
@@ -56,7 +102,7 @@ class LaneTracking:
     def trackLane(self, img):
 
         if self.lane is None:
-            return
+            return False
 
         x1, y1 = self.lane.getInitialPoint()
         x2, y2 = self.lane.getTerminalPoint()
@@ -75,10 +121,10 @@ class LaneTracking:
         thread2.join()
 
         if self.bx >= 0 and self.tx >= 0:
-            # create a new lane
+            # update the lane detected
             self.lane = Line(self.bx, self.by, self.tx, self.ty)
             return True
         else:
-            print('Impossible to detect a new line')
+            if self.debug:
+                self.cam_debugger.write(self.class_name, "Impossible to track lanes")
             return False
-
