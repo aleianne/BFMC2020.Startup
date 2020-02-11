@@ -6,10 +6,10 @@ from src.utils.debugger.cameradebugger import CameraDebugger
 import cv2
 
 
-class CameraAcquirer(ThreadWithStop):
+class LaneDetectionThread(ThreadWithStop):
 
     def __init__(self, in_conn, debug=False):
-        super(CameraAcquirer, self).__init__()
+        super(LaneDetectionThread, self).__init__()
         self.in_conn = in_conn
         self.debug = debug
 
@@ -28,7 +28,7 @@ class CameraAcquirer(ThreadWithStop):
         self.lane_detected = False
 
         self.last_ts = None                     # last frame timestamp
-        self.last_dts = None                    # last frame with last lane detected timestamp
+        self.last_dts = None                    # last frame with lane detected timestamp
 
     # DEFINITION OF PRIVATE METHODS
     def _stopAcquisition(self):

@@ -3,10 +3,9 @@
 # In this way is possible to apply all the lane detection algorithm 
 
 from src.utils.templates.workerprocess import WorkerProcess
-from src.dataacquisition.cameraacquirer import CameraAcquirer
+from src.dataacquisition.lanedetectionthread import LaneDetectionThread
 from src.dataacquisition.testcmdthread import TestCmdThread
 
-from threading import Thread
 
 class LaneDetectionProcess(WorkerProcess): 
 
@@ -26,5 +25,5 @@ class LaneDetectionProcess(WorkerProcess):
         self.inConn = self.inPs[0]
         self.outConn = self.outPs[0]
 
-        self.threads.append(CameraAcquirer(self.inConn))
+        self.threads.append(LaneDetectionThread(self.inConn))
         #self.threads.append(TestCmdThread(self.outPs))
