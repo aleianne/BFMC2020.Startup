@@ -4,20 +4,20 @@ from src.dataacquisition.imageprocessing.signclassification import SignClassific
 
 class SignDetectionThread(ThreadWithStop):
 
-    def __init__(inPs):
+    def __init__(self, inPs):
         super(SignDetectionThread, self).__init__()
         self.inPs = inPs
         self.seg = ImageSegmentation()
         self.dnn = SignClassification()
 
 
-    def run():
+    def run(self):
 
         if len(self.inPs) == 0:
             print("SingDetectionThread: no input connection has been specified")
             return
         elif len(self.inPs) != 1:
-            print("SignDetectionThread: too many input connection, " + len(self.inPs))
+            print("SignDetectionThread: too many input connection, " + str(len(self.inPs)))
             return
 
         inConn = self.inPs[0]
@@ -29,13 +29,9 @@ class SignDetectionThread(ThreadWithStop):
                 timestamp = data[0][0]
                 image = data[1]
 
-                
-
             except EOFError: 
                 print("SignDetectionThread: input connection has been closed")
                 self._running = False
 
-    def stop():
+    def stop(self):
         self._running = False
-
-     

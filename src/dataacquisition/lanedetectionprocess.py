@@ -14,5 +14,17 @@ class LaneDetectionProcess(WorkerProcess):
         super(LaneDetectionProcess, self).__init__(inPs, outPs)
 
     def _init_threads(self): 
-        self.threads.append(CameraAcquirer(self.inPs, self.outPs))
+
+        if len(self.inPs) != 1: 
+            print("LaneDetectionProcess: no input connection has been specified")
+            return 
+
+        if len(self.outPs) != 1:
+            print("LaneDetectionProcess: no output connection has been specified")
+            return
+
+        self.inConn = self.inPs[0]
+        self.outConn = self.outPs[0]
+
+        self.threads.append(CameraAcquirer(self.inConn))
         #self.threads.append(TestCmdThread(self.outPs))

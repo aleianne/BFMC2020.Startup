@@ -53,9 +53,9 @@ from src.dataacquisition.sensordatahandler import SensorDataHandler
 
 # =============================== CONFIG =================================================
 enableStream        =  False
-enableCameraSpoof   =  False 
-enableRc            =  False
-enableExec          =  True
+enableCameraSpoof   =  False
+enableRc            =  True
+enableExec          =  False
 #================================ PIPES ==================================================
 
 
