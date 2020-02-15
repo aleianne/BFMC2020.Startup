@@ -1,22 +1,20 @@
 from src.dataacquisition.imageprocessing.line import Line
 
-import cv2
+import logging
+import cv2 as cv
 import math
 import numpy as np
 
 
 class EdgeDetection:
 
-    def __init__(self, cam_debugger, debug=False):
+    def __init__(self):
         self.right_lanes = []
         self.left_lanes = []
 
         self.lane_detected = False
 
-        # camera debugger
-        self.cam_debugger = cam_debugger
-        self.debug = debug
-        self.class_name = EdgeDetection.__name__
+        self.last_dts = None                # timestamp of the last lane detected inside a frame
 
     # DEFINITION OF GET/SET METHODS
 
@@ -41,17 +39,16 @@ class EdgeDetection:
     def getLaneDetected(self):
         return self.lane_detected
 
+    def initDetection(self):
+        self.right_lanes = []
+        self.left_lanes = []
+
+        self.lane_detected = False
+
     # DEFINITION OF PRIVATE METHODS
 
     def _detectLineSegments(self, cropped_img):
-        # GENERATING THE LINES USING HOUGH TRANSFORM
-        # rho is the distance precision in pixel.
-        # angle is angular precision in radian.
-        # min_threshold is the number of votes needed to be considered a line segment
-        # minLineLength is the minimum length of the line segment in pixels.
-        # maxLineGap is the maximum in pixels that two line segments that can be separated and still be considered a single line segment.
-        # CHANGE THE rho, theta, threshold, minLineLength, and maxLineGap
-        line_segments = cv2.HoughLinesP(cropped_img,
+        line_segments = cv.HoughLinesP(cropped_img,
                                         rho=6,
                                         theta=np.pi / 60,
                                         threshold=160,
@@ -64,19 +61,32 @@ class EdgeDetection:
 
     def _regionOfInterest(self, img, vertices):
         mask = np.zeros_like(img)
-        # The number of color channels
-        # channel_count = img.shape[2]
         match_mask_color = 255
-        cv2.fillPoly(mask, vertices, match_mask_color)
-        masked_image = cv2.bitwise_and(img, mask)
+        cv.fillPoly(mask, vertices, match_mask_color)
+        masked_image = cv.bitwise_and(img, mask)
         return masked_image
 
-    def _cannyEdge(self, img):
-        return cv2.Canny(img, 100, 200)
+    def _fitLane(self, lane_x, lane_y, max_y, min_y):
+        poly_left = np.poly1d(np.polyfit(
+            lane_y,
+            lane_x,
+            deg=1
+        ))
+
+        x_start = int(poly_left(max_y))
+        x_end = int(poly_left(min_y))
+
+        new_line = Line(x_start, min_y, x_end, max_y)
+        return new_line
 
     # DEFINITION OF PUBLIC METHODS
 
-    def laneDetection(self, image):
+    def laneDetection(self, image, ts):
+
+
+        # TODO da controllare se questa regione di interesse è corretta o meno
+        # in particolare non saprei se questo triangolo è la cosa migliore da passare
+        # define the region of interest
         region_of_interest_vertices = [
             (0, image.shape[0]),
             (image.shape[1] / 2, image.shape[0] / 2),
@@ -84,14 +94,17 @@ class EdgeDetection:
         ]
 
         # convert the image in grays cale and than extract the region of interest
-        canny_image = self._cannyEdge(image)
+        canny_image = cv.Canny(image, 100, 200)
         cropped_image = self._regionOfInterest(
             canny_image,
             np.array([region_of_interest_vertices], np.int32),
         )
 
-        # generate the lines using the hough transform
+        # generate lines using the hough transform
         line_segments = self._detectLineSegments(cropped_image)
+
+        if len(line_segments) == 0:
+            return False
 
         left_lane_x = []
         left_lane_y = []
@@ -99,6 +112,7 @@ class EdgeDetection:
         right_lane_x = []
         right_lane_y = []
 
+        # this part of the code detect only right and left lane marker
         for line in line_segments:
             for x1, y1, x2, y2 in line:
                 slope = (y2 - y1) / (x2 - x1)
@@ -116,45 +130,38 @@ class EdgeDetection:
         min_y = int(image.shape[0] * (3 / 5))
         max_y = image.shape[0]
 
-        if (len(left_lane_x) == 0) and (len(right_lane_x) == 0):
+        if (len(left_lane_x) == 0) or (len(right_lane_x) == 0):
             self.lane_detected = False
-            if self.debug:
-                self.cam_debugger.write_log(self.class_name, "No lane has been detected")
-            return
+            return False
 
-        if len(left_lane_x) != 0:
-            poly_left = np.poly1d(np.polyfit(
-                left_lane_y,
-                left_lane_x,
-                deg=1
-            ))
-
-            left_x_start = int(poly_left(max_y))
-            left_x_end = int(poly_left(min_y))
-
-            left_lane = Line(left_x_start, min_y, left_x_end, max_y)
-            self.left_lanes.append(left_lane)
-        else:
-            if self.debug:
-                self.cam_debugger.write_log(self.class_name, "scrivere qualcosa")
-
-
-        if len(right_lane_x) != 0:
-            poly_right = np.poly1d(np.polyfit(
-                right_lane_y,
-                right_lane_x,
-                deg=1
-            ))
-
-            right_x_start = int(poly_right(max_y))
-            right_x_end = int(poly_right(min_y))
-
-            right_lane = Line(right_x_start, min_y, right_x_end, max_y)
-            self.right_lanes.append(right_lane)
-        else:
-            if self.debug:
-                self.cam_debugger.write_log(self.class_name, "scrivere qualcos'altro ahhahahah")
-
-
+        self.left_lanes.append(self._fitLane(left_lane_x, left_lane_y, max_y, min_y))
+        self.right_lanes.append(self._fitLane(right_lane_x, right_lane_y, max_y, min_y))
         self.lane_detected = True
-        return self.lane_detected
+        self.last_dts = ts
+
+        return True
+
+        # poly_left = np.poly1d(np.polyfit(
+        #     left_lane_y,
+        #     left_lane_x,
+        #     deg=1
+        # ))
+        #
+        # left_x_start = int(poly_left(max_y))
+        # left_x_end = int(poly_left(min_y))
+        #
+        # left_lane = Line(left_x_start, min_y, left_x_end, max_y)
+        # self.left_lanes.append(left_lane)
+
+        # if len(right_lane_x) != 0:
+        #     poly_right = np.poly1d(np.polyfit(
+        #         right_lane_y,
+        #         right_lane_x,
+        #         deg=1
+        #     ))
+        #
+        #     right_x_start = int(poly_right(max_y))
+        #     right_x_end = int(poly_right(min_y))
+        #
+        #     right_lane = Line(right_x_start, min_y, right_x_end, max_y)
+        #     self.right_lanes.append(right_lane)

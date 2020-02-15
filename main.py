@@ -50,12 +50,14 @@ from src.utils.remotecontrol.remotecontrolreceiver import RemoteControlReceiver
 
 from src.dataacquisition.lanedetectionprocess import LaneDetectionProcess
 from src.dataacquisition.sensordatahandler import SensorDataHandler
+from src.dataacquisition.objectdetectionprocess import ObjectDetectionProcess
+from src.utils.debugger.initlogger import InitLogger
 
 # =============================== CONFIG =================================================
 enableStream        =  False
 enableCameraSpoof   =  False
-enableRc            =  True
-enableExec          =  False
+enableRc            =  False
+enableExec          =  True
 #================================ PIPES ==================================================
 
 
@@ -67,11 +69,6 @@ allProcesses = list()
 # ------------------- camera + streamer ----------------------
 if enableStream:
     camStR, camStS = Pipe(duplex = False)           # camera  ->  streamer
-
-    # TODO remember to add the new pipes that connect the camera process to the lane detector process
-    # TODO remember to add all the pipes that interconnect each process in order to create the interprocess communication, 
-    # TODO remember to add declare the new process here and then to add the process inside the allProcess list: in this way all the process can be handled by 
-    # this main script
 
     if enableCameraSpoof:
         camSpoofer = CameraSpooferProcess([],[camStS],'vid')
@@ -93,22 +90,33 @@ if enableStream:
 # gpsProc = GpsProcess([], [gpsBrS])
 # allProcesses.append(gpsProc)
 
-if enableExec: 
-    # create a connection between the camera and the data acquisition
+if enableExec:
+
+    # before to create all the interconnection and the process
+    # initialize the logger object
+    init_logger = InitLogger()
+
+    # create a connection between the camera and the Lane Detector
     cameraStrR, cameraStrS = Pipe(duplex=False)
+    # create a connection between the camera handler and the Object Detector
+    cameraStr2R, cameraStr2S = Pipe(duplex=False)
     # create a connection between the serial handler and the Lane Detector
     commandR, commandS = Pipe(duplex=False)
+    # create a connection between the serial handler and the Object Detector
+    command2R, command2S = Pipe(duplex=False)
     # create a connection between the serial handler and the Sensor Data Acquirer
-    # measure acquisition
     msrAcqR, msrAcqS = Pipe(duplex=False)
 
-    cameraProc = CameraProcess([], [cameraStrS])
+    cameraProc = CameraProcess([], [cameraStrS, cameraStr2S])
     allProcesses.append(cameraProc)
 
     laneDetecProc = LaneDetectionProcess([cameraStrR], [commandS])
     allProcesses.append(laneDetecProc)
 
-    serialhandler = SerialHandler([commandR], [msrAcqS])
+    objectDetecProc = ObjectDetectionProcess([cameraStr2R], [command2S])
+    allProcesses.append(objectDetecProc)
+
+    serialhandler = SerialHandler([commandR, command2R], [msrAcqS])
     allProcesses.append(serialhandler)
 
     dataHandler = SensorDataHandler([msrAcqR], [])

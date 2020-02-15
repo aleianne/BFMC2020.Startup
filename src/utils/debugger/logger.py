@@ -5,7 +5,7 @@ from datetime import datetime
 from pathlib import Path
 
 
-class Debugger:
+class ProjectLogger:
 
     def __init__(self, logfilename):
         self.logfilename = logfilename
