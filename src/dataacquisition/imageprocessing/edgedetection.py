@@ -5,6 +5,7 @@ import cv2 as cv
 import math
 import numpy as np
 
+import logging
 
 class EdgeDetection:
 
@@ -15,6 +16,7 @@ class EdgeDetection:
         self.lane_detected = False
 
         self.last_dts = None                # timestamp of the last lane detected inside a frame
+        self.logger = logging.getLogger('bfmc.laneDetection.laneDetectionThread.edgeDetection')
 
     # DEFINITION OF GET/SET METHODS
 
@@ -93,18 +95,27 @@ class EdgeDetection:
             (image.shape[1], image.shape[0]),
         ]
 
+        region_of_interest_verticies = [
+            (0, image.shape[0] * (2/3)),
+            (image.shape[1], image.shape[1] * (2/3)),
+            (0, image.shape[0]),
+            (image.shape[1], image.shape[0])
+        ]
+
+        # self._printImageOnScreen(image)
+
         # convert the image in grays cale and than extract the region of interest
-        canny_image = cv.Canny(image, 100, 200)
+        canny_image = cv.Canny(image, 100, 150)
         cropped_image = self._regionOfInterest(
             canny_image,
             np.array([region_of_interest_vertices], np.int32),
         )
 
+        cv.imwrite('./debug/image.png', cropped_image)
+        #self._printImageOnScreen(cropped_image)
+
         # generate lines using the hough transform
         line_segments = self._detectLineSegments(cropped_image)
-
-        if len(line_segments) == 0:
-            return False
 
         left_lane_x = []
         left_lane_y = []
@@ -129,6 +140,12 @@ class EdgeDetection:
 
         min_y = int(image.shape[0] * (3 / 5))
         max_y = image.shape[0]
+
+        if len(left_lane_x) == 0:
+            self.logger.debug('we cannot detect left lanes')
+
+        if len(right_lane_y) == 0:
+            self.logger.debug('we cannot detect right lanes')
 
         if (len(left_lane_x) == 0) or (len(right_lane_x) == 0):
             self.lane_detected = False
