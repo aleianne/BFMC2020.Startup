@@ -39,6 +39,7 @@ from multiprocessing import Pipe, Process, Event
 # hardware imports
 from src.hardware.camera.cameraprocess               import CameraProcess
 from src.hardware.serialhandler.serialhandler        import SerialHandler
+from src.hardware.video.videoprocess import VideoProcess
 
 # data imports
 # from src.data.consumer.consumerprocess             import Consumer
@@ -55,7 +56,7 @@ from src.utils.debugger.initlogger import InitLogger
 
 # =============================== CONFIG =================================================
 enableStream        =  False
-enableCameraSpoof   =  False
+enableCameraSpoof   =  True
 enableRc            =  False
 enableExec          =  True
 #================================ PIPES ==================================================
@@ -71,15 +72,15 @@ if enableStream:
     camStR, camStS = Pipe(duplex = False)           # camera  ->  streamer
 
     if enableCameraSpoof:
-        camSpoofer = CameraSpooferProcess([],[camStS],'vid')
+        camSpoofer = CameraSpooferProcess([],[camStS],'Training', '.avi')
         allProcesses.append(camSpoofer)
 
     else:
-        camProc = CameraProcess([],[camStS])
+        camProc =   CameraProcess([],[camStS])
         allProcesses.append(camProc)
 
-    streamProc = CameraStreamer([camStR], [])
-    allProcesses.append(streamProc)
+    # streamProc = CameraStreamer([camStR], [])
+    # allProcesses.append(streamProc)
 
 
 
@@ -96,6 +97,8 @@ if enableExec:
     # initialize the logger object
     init_logger = InitLogger()
 
+    camStR, camStS = Pipe(duplex=False)  # camera  ->  streamer
+
     # create a connection between the camera and the Lane Detector
     cameraStrR, cameraStrS = Pipe(duplex=False)
     # create a connection between the camera handler and the Object Detector
@@ -107,17 +110,21 @@ if enableExec:
     # create a connection between the serial handler and the Sensor Data Acquirer
     msrAcqR, msrAcqS = Pipe(duplex=False)
 
-    cameraProc = CameraProcess([], [cameraStrS, cameraStr2S])
-    allProcesses.append(cameraProc)
+    # cameraProc = CameraProcess([], [cameraStrS, cameraStr2S])
+    # allProcesses.append(cameraProc)
 
-    laneDetecProc = LaneDetectionProcess([cameraStrR], [commandS])
+    camSpoofer = CameraSpooferProcess([], [camStS], 'Videos')
+    allProcesses.append(camSpoofer)
+
+    # laneDetecProc = LaneDetectionProcess([cameraStrR], [commandS])
+    laneDetecProc = LaneDetectionProcess([camStR], [commandS])
     allProcesses.append(laneDetecProc)
 
     objectDetecProc = ObjectDetectionProcess([cameraStr2R], [command2S])
     allProcesses.append(objectDetecProc)
 
-    serialhandler = SerialHandler([commandR, command2R], [msrAcqS])
-    allProcesses.append(serialhandler)
+    # serialhandler = SerialHandler([commandR, command2R], [msrAcqS])
+    # allProcesses.append(serialhandler)
 
     dataHandler = SensorDataHandler([msrAcqR], [])
     allProcesses.append(dataHandler)

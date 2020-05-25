@@ -1,0 +1,4 @@
+2020-05-26 01:30:08,047 - bfmc.laneDetection.laneDetectionThread - INFO - Started lane detection
+2020-05-26 01:30:08,050 - bfmc.objectDetection.signDetectionThread - INFO - Started traffic sign detection
+2020-05-26 01:32:04,553 - bfmc.laneDetection.laneDetectionThread - DEBUG - Forced the interruption of computation
+2020-05-26 01:32:04,672 - bfmc.objectDetection.signDetectionThread - DEBUG - Forced the interruption of the computation
