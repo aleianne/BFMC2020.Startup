@@ -13,21 +13,22 @@ class InitLogger:
         self.filename = "application.log"
         self.debug_dir = Path('./debug')
 
-        today = date.today().strftime('%d-%m-%Y')
-        now = datetime.now().strftime('%H:%M:%S')
+        today = date.today().strftime('%d_%m_%Y')
+        now = datetime.now().strftime('%H_%M_%S')
 
         self.dir_name = "debug_" + today + "_" + now
 
         if not self.debug_dir.exists():
-            os.mkdir(self.debug_dir.as_posix())
+            os.mkdir(str(self.debug_dir))
 
         current_debug_dir = self.debug_dir / self.dir_name
-        os.mkdir(current_debug_dir.as_posix())
+        print(str(current_debug_dir))
+        os.mkdir(str(current_debug_dir))
 
         file_path = current_debug_dir / self.filename
 
         # create a new file handler for the logger
-        file_handler = logging.FileHandler(file_path.as_posix())
+        file_handler = logging.FileHandler(str(file_path))
         file_handler.setLevel(logging.DEBUG)
 
         # create a new formatter for the logger

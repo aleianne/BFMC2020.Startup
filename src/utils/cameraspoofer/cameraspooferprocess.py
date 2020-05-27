@@ -33,7 +33,7 @@ from threading       import Thread
 
 from src.utils.templates.workerprocess import WorkerProcess
 
-class CameraSpooferProcess(WorkerProcess):
+class CameraSpooferProcess(WorkerProcess):     #继承workerprocess
 
     #================================ INIT ===============================================
     def __init__(self, inPs,outPs, videoDir, ext = '.h264'):
@@ -46,9 +46,9 @@ class CameraSpooferProcess(WorkerProcess):
 
         outPs : list(Pipe)
             list of output pipes(order does not matter)
-        videoDir : [str]
+        videoDir : [str]                    #video的路径
             path to a dir with videos
-        ext : str, optional
+        ext : str, optional                 #video的拓展名
             the extension of the file, by default '.h264'
         """
         super(CameraSpooferProcess,self).__init__(inPs,outPs)
@@ -74,9 +74,10 @@ class CameraSpooferProcess(WorkerProcess):
         Returns
         -------
         list
+
             A list of the files in the folder with the specified file extension. 
         """
-        
+       
         files =  glob.glob(inputDir + '/*' + ext)  
         return files
 
@@ -98,18 +99,23 @@ class CameraSpooferProcess(WorkerProcess):
         videos : list(string)
             The list of files with the videos. 
         """
+        print("before while in cameraspoofer")  #ceshi
         while True:
             for video in videos:
+                print(video)  #ceshi
                 cap         =   cv2.VideoCapture(video)
                 
                 while True:
                     ret, frame = cap.read()
                     stamp = time.time()
+                    print("i am inside cameraspoofer")     #ceshi
                     if ret: 
                         frame = cv2.resize(frame, self.videoSize)
-                        
+
+
                         for p in self.outPs:
                             p.send([[stamp], frame])
+                            print("i am cameraspoonfer")    #ceshi
                                
                     else:
                         break

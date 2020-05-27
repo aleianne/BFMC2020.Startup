@@ -11,9 +11,9 @@ class SignDetectionThread(ThreadWithStop):
     def __init__(self, in_conn, out_queue, cv, video_debug=False):
         super(SignDetectionThread, self).__init__()
         self.in_conn = in_conn
-        self.out_queue = out_queue
+        #self.out_queue = out_queue
 
-        self.cv = cv
+        #self.cv = cv
 
         self.logger = logging.getLogger("bfmc.objectDetection.signDetectionThread")
 
@@ -30,16 +30,18 @@ class SignDetectionThread(ThreadWithStop):
         self.last_dts = None                # last frame with traffic sign detected
 
     def _writeTrafficSignDetected(self, det_ts):
-        with self.cv:
-            for ts in det_ts:
-                self.out_queue.put(ts)
-            self.cv.notify()
+        pass
+    #    with self.cv:
+     #       for ts in det_ts:
+      #          self.out_queue.put(ts)
+       #     self.cv.notify()
 
     def run(self):
 
         self.logger.info("Started traffic sign detection")
 
         while self._running:
+            print("here is before try")  #测试
             try:
                 # retrieve the image and the timestamp from the input connection
                 data = self.in_conn.recv()
@@ -47,7 +49,7 @@ class SignDetectionThread(ThreadWithStop):
                 image = data[1]
 
                 self.image_segmentation.detectObjectOfInterest(image)
-
+                print("I AM HERE 01")   #测试
                 if self.image_segmentation.getObjectDetected():
                     self.last_dts = timestamp
                     self.sign_detected = True
@@ -65,6 +67,9 @@ class SignDetectionThread(ThreadWithStop):
             except EOFError: 
                 self.logger.error("Input connection has been closed")
                 self._running = False
+
+            except Exception:
+                print("here is  an exception")
 
     def stop(self):
         self.logger.debug("Forced the interruption of the computation")
