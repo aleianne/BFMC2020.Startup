@@ -54,101 +54,107 @@ from src.dataacquisition.sensordatahandler import SensorDataHandler
 from src.dataacquisition.objectdetectionprocess import ObjectDetectionProcess
 from src.utils.debugger.initlogger import InitLogger
 
-# =============================== CONFIG =================================================
-enableStream = True
-enableCameraSpoof = True
-enableRc = False
-enableExec = True
-# ================================ PIPES ==================================================
+
+def entry_point():
+    # =============================== CONFIG =================================================
+    enableStream = True
+    enableCameraSpoof = True
+    enableRc = False
+    enableExec = True
+    # ================================ PIPES ==================================================
 
 
-# gpsBrR, gpsBrS = Pipe(duplex = False)           # gps     ->  brain
-# ================================ PROCESSES ==============================================
-allProcesses = list()
+    # gpsBrR, gpsBrS = Pipe(duplex = False)           # gps     ->  brain
+    # ================================ PROCESSES ==============================================
+    allProcesses = list()
 
-# =============================== HARDWARE PROCC =========================================
-# ------------------- camera + streamer ----------------------
-if enableStream:
-    camStR, camStS = Pipe(duplex=False)  # camera  ->  streamer
+    # =============================== HARDWARE PROCC =========================================
+    # ------------------- camera + streamer ----------------------
+    if enableStream:
+        camStR, camStS = Pipe(duplex=False)  # camera  ->  streamer
 
-    if enableCameraSpoof:
-        camSpoofer = CameraSpooferProcess([], [camStS], '001',".h264")
-        allProcesses.append(camSpoofer)
+        if enableCameraSpoof:
+            camSpoofer = CameraSpooferProcess([], [camStS], '001',".h264")
+            allProcesses.append(camSpoofer)
 
-    else:
-        camProc = CameraProcess([], [camStS])
-        allProcesses.append(camProc)
-
-    streamProc = CameraStreamer([camStR], [])
-    allProcesses.append(streamProc)
-
-# =============================== DATA ===================================================
-# gps client process
-# gpsProc = GpsProcess([], [gpsBrS])
-# allProcesses.append(gpsProc)
-
-if enableExec:
-    # before to create all the interconnection and the process
-    # initialize the logger object
-    init_logger = InitLogger()
-    print("i am here")
-    camStR,camStS = Pipe(duplex=False)   #camera - streamer
-    # create a connection between the camera and the Lane Detector
-    cameraStrR, cameraStrS = Pipe(duplex=False)
-    # create a connection between the camera handler and the Object Detector
-    cameraStr2R, cameraStr2S = Pipe(duplex=False)
-    # create a connection between the serial handler and the Lane Detector
-    commandR, commandS = Pipe(duplex=False)
-    # create a connection between the serial handler and the Object Detector
-    command2R, command2S = Pipe(duplex=False)
-    # create a connection between the serial handler and the Sensor Data Acquirer
-    msrAcqR, msrAcqS = Pipe(duplex=False)
-
-    #cameraProc = CameraProcess([], [cameraStrS, cameraStr2S])
-    #allProcesses.append(cameraProc)
-
-    camSpoofer = CameraSpooferProcess([], [camStS], 'training',".h264")
-    #laneDetecProc = LaneDetectionProcess([cameraStrR], [commandS])
-    #allProcesses.append(laneDetecProc)
-
-    objectDetecProc = ObjectDetectionProcess([cameraStr2R], [command2S])
-    allProcesses.append(objectDetecProc)
-
-    #serialhandler = SerialHandler([commandR, command2R], [msrAcqS])
-    # allProcesses.append(serialhandler)
-
-    dataHandler = SensorDataHandler([msrAcqR], [])
-    allProcesses.append(dataHandler)
-
-# ===================================== CONTROL ==========================================
-# ------------------- remote controller -----------------------
-if enableRc:
-    rcShR, rcShS = Pipe(duplex=False)  # rc      ->  serial handler
-
-    # serial handler process
-    shProc = SerialHandler([rcShR], [])
-    allProcesses.append(shProc)
-
-    rcProc = RemoteControlReceiver([], [rcShS])
-    allProcesses.append(rcProc)
-
-print("Starting the processes!", allProcesses)
-for proc in allProcesses:
-    proc.daemon = True
-    proc.start()
-
-blocker = Event()
-
-try:
-    blocker.wait()
-except KeyboardInterrupt:
-    print("\nCatching a KeyboardInterruption exception! Shutdown all processes.\n")
-    for proc in allProcesses:
-        if hasattr(proc, 'stop') and callable(getattr(proc, 'stop')):
-            print("Process with stop", proc)
-            proc.stop()
-            proc.join()
         else:
-            print("Process witouth stop", proc)
-            proc.terminate()
-            proc.join()
+            camProc = CameraProcess([], [camStS])
+            allProcesses.append(camProc)
+
+        streamProc = CameraStreamer([camStR], [])
+        allProcesses.append(streamProc)
+
+    # =============================== DATA ===================================================
+    # gps client process
+    # gpsProc = GpsProcess([], [gpsBrS])
+    # allProcesses.append(gpsProc)
+
+    if enableExec:
+        # before to create all the interconnection and the process
+        # initialize the logger object
+        init_logger = InitLogger()
+        print("i am here")
+        camStR,camStS = Pipe(duplex=False)   #camera - streamer
+        # create a connection between the camera and the Lane Detector
+        cameraStrR, cameraStrS = Pipe(duplex=False)
+        # create a connection between the camera handler and the Object Detector
+        cameraStr2R, cameraStr2S = Pipe(duplex=False)
+        # create a connection between the serial handler and the Lane Detector
+        commandR, commandS = Pipe(duplex=False)
+        # create a connection between the serial handler and the Object Detector
+        command2R, command2S = Pipe(duplex=False)
+        # create a connection between the serial handler and the Sensor Data Acquirer
+        msrAcqR, msrAcqS = Pipe(duplex=False)
+
+        #cameraProc = CameraProcess([], [cameraStrS, cameraStr2S])
+        #allProcesses.append(cameraProc)
+
+        camSpoofer = CameraSpooferProcess([], [camStS], 'training',".h264")
+        #laneDetecProc = LaneDetectionProcess([cameraStrR], [commandS])
+        #allProcesses.append(laneDetecProc)
+
+        objectDetecProc = ObjectDetectionProcess([cameraStr2R], [command2S])
+        allProcesses.append(objectDetecProc)
+
+        #serialhandler = SerialHandler([commandR, command2R], [msrAcqS])
+        # allProcesses.append(serialhandler)
+
+        dataHandler = SensorDataHandler([msrAcqR], [])
+        allProcesses.append(dataHandler)
+
+    # ===================================== CONTROL ==========================================
+    # ------------------- remote controller -----------------------
+    if enableRc:
+        rcShR, rcShS = Pipe(duplex=False)  # rc      ->  serial handler
+
+        # serial handler process
+        shProc = SerialHandler([rcShR], [])
+        allProcesses.append(shProc)
+
+        rcProc = RemoteControlReceiver([], [rcShS])
+        allProcesses.append(rcProc)
+
+    print("Starting the processes!", allProcesses)
+    for proc in allProcesses:
+        proc.daemon = True
+        proc.start()
+
+    blocker = Event()
+
+    try:
+        blocker.wait()
+    except KeyboardInterrupt:
+        print("\nCatching a KeyboardInterruption exception! Shutdown all processes.\n")
+        for proc in allProcesses:
+            if hasattr(proc, 'stop') and callable(getattr(proc, 'stop')):
+                print("Process with stop", proc)
+                proc.stop()
+                proc.join()
+            else:
+                print("Process witouth stop", proc)
+                proc.terminate()
+                proc.join()
+
+
+if __name__ == '__main__':
+    entry_point()
