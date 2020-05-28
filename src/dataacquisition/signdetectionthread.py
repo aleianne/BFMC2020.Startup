@@ -8,7 +8,7 @@ import logging
 
 class SignDetectionThread(ThreadWithStop):
 
-    def __init__(self, in_conn, out_queue, cv, video_debug=False):
+    def __init__(self, in_conn, video_debug=False):
         super(SignDetectionThread, self).__init__()
         self.in_conn = in_conn
         #self.out_queue = out_queue

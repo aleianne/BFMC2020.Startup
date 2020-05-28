@@ -33,5 +33,5 @@ class ObjectDetectionProcess(WorkerProcess):
         self.in_conn = self.inPs[0]
         self.out_conn = self.outPs[0]
 
-        self.threads.append(SignDetectionThread(self.in_conn, self.ts_queue, self.cv))
-        self.threads.append(DataSubscriberThread(self.out_conn, self.ts_queue, self.cv))
+        self.threads.append(SignDetectionThread(self.in_conn))
+        self.threads.append(DataSubscriberThread(self.out_conn))
