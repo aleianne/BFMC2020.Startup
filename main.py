@@ -54,8 +54,8 @@ from src.dataacquisition.objectdetectionprocess import ObjectDetectionProcess
 from src.utils.debugger.initlogger import InitLogger
 
 # =============================== CONFIG =================================================
-enableStream        =  False
-enableCameraSpoof   =  False
+enableStream        =  True
+enableCameraSpoof   =  True
 enableRc            =  False
 enableExec          =  True
 #================================ PIPES ==================================================
@@ -95,7 +95,9 @@ if enableExec:
     # before to create all the interconnection and the process
     # initialize the logger object
     init_logger = InitLogger()
+    print("positon 01")
 
+    camStR,camStS = Pipe(duplex=False)
     # create a connection between the camera and the Lane Detector
     cameraStrR, cameraStrS = Pipe(duplex=False)
     # create a connection between the camera handler and the Object Detector
@@ -107,17 +109,19 @@ if enableExec:
     # create a connection between the serial handler and the Sensor Data Acquirer
     msrAcqR, msrAcqS = Pipe(duplex=False)
 
+
+    camSpoofer = CameraSpooferProcess([],[camStS],'vid')
     cameraProc = CameraProcess([], [cameraStrS, cameraStr2S])
     allProcesses.append(cameraProc)
 
-    laneDetecProc = LaneDetectionProcess([cameraStrR], [commandS])
-    allProcesses.append(laneDetecProc)
+    #laneDetecProc = LaneDetectionProcess([cameraStrR], [commandS])
+    #allProcesses.append(laneDetecProc)
 
     objectDetecProc = ObjectDetectionProcess([cameraStr2R], [command2S])
     allProcesses.append(objectDetecProc)
 
-    serialhandler = SerialHandler([commandR, command2R], [msrAcqS])
-    allProcesses.append(serialhandler)
+#    serialhandler = SerialHandler([commandR, command2R], [msrAcqS])
+ #   allProcesses.append(serialhandler)
 
     dataHandler = SensorDataHandler([msrAcqR], [])
     allProcesses.append(dataHandler)
