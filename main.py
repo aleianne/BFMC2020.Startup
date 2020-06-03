@@ -109,19 +109,20 @@ if enableExec:
     # create a connection between the serial handler and the Sensor Data Acquirer
     msrAcqR, msrAcqS = Pipe(duplex=False)
 
+    # camSpoofer = CameraSpooferProcess([], [cameraStrS], '/home/alessandro/Desktop/BFMC_doc')
 
     camSpoofer = CameraSpooferProcess([],[camStS],'vid')
-    cameraProc = CameraProcess([], [cameraStrS, cameraStr2S])
-    allProcesses.append(cameraProc)
+    # cameraProc = CameraProcess([], [cameraStrS, cameraStr2S])
+    allProcesses.append(camSpoofer)
 
     #laneDetecProc = LaneDetectionProcess([cameraStrR], [commandS])
     #allProcesses.append(laneDetecProc)
 
-    objectDetecProc = ObjectDetectionProcess([cameraStr2R], [command2S])
+    objectDetecProc = ObjectDetectionProcess([cameraStrR], [command2S])
     allProcesses.append(objectDetecProc)
 
-#    serialhandler = SerialHandler([commandR, command2R], [msrAcqS])
- #   allProcesses.append(serialhandler)
+    # serialhandler = SerialHandler([commandR, command2R], [msrAcqS])
+    # allProcesses.append(serialhandler)
 
     dataHandler = SensorDataHandler([msrAcqR], [])
     allProcesses.append(dataHandler)

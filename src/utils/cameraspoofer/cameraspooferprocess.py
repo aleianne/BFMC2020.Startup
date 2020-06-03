@@ -100,16 +100,21 @@ class CameraSpooferProcess(WorkerProcess):
         """
         while True:
             for video in videos:
+                print("before the video capture")
                 cap         =   cv2.VideoCapture(video)
-                
+                print("after the video capture")
+
                 while True:
                     ret, frame = cap.read()
                     stamp = time.time()
-                    if ret: 
+                    if ret:
+                        print("I'm here")
                         frame = cv2.resize(frame, self.videoSize)
-                        
+                        print("I'm here 2")
                         for p in self.outPs:
+                            print("I'm here 3")
                             p.send([[stamp], frame])
+                            print("I just sent a frame")
                                
                     else:
                         break

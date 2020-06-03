@@ -19,7 +19,6 @@ class ObjectDetectionProcess(WorkerProcess):
         self.logger = logging.getLogger("bfmc.objectDetection")
 
 
-
     def _init_threads(self):
         if len(self.inPs) != 1:
             self.logger.error("Wrong number of input connections")
@@ -33,6 +32,6 @@ class ObjectDetectionProcess(WorkerProcess):
         self.in_conn = self.inPs[0]
         self.out_conn = self.outPs[0]
 
-        self.threads.append(SignDetectionThread(self.in_conn))
+        # self.threads.append(SignDetectionThread(self.in_conn))
         self.threads.append(SemaphoreDetectionThread(self.in_conn))
-        self.threads.append(DataSubscriberThread(self.out_conn))
+        # self.threads.append(DataSubscriberThread(self.out_conn))

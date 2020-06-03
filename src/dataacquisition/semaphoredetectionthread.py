@@ -21,17 +21,13 @@ class SemaphoreDetectionThread(ThreadWithStop):
 
         self.logger = logging.getLogger("bfmc.objectDetection.semaphoreDetectionThread")
 
-        if video_debug:
-         self.video_logger = VideoLogger()
+        self.video_logger = VideoLogger()
+        self.detect_semaphore = SemaphoreDetection()
 
-         self.detect_semaphore = SemaphoreDetection()
+        self.semaphore_detected = False
 
-         self.semaphore_detected = False
-
-         self.last_ts = None
-         self.last_dts = None
-
-
+        self.last_ts = None
+        self.last_dts = None
 
     def run(self):
         self.logger.info("Started semaphore detection")
@@ -42,13 +38,14 @@ class SemaphoreDetectionThread(ThreadWithStop):
                 data = self.in_conn.recv()
                 timestamp = data[0][0]
                 image = data[1]
-                self.detect_semaphore.detectState(image)
+                overallState = self.detect_semaphore.detectState(image)
+                print("The state returned by the detectState function is {state}".format(state=overallState))
 
                 if self.detect_semaphore.getObjectDetected():
                     self.last_dts = timestamp
                     self.semaphore_detected = True
                     detected_object_list = self.detect_semaphore.getObjectDetected()
-                  #  self._writeTrafficSignDetected(detected_object_list)
+                    # self._writeTrafficSignDetected(detected_object_list)
 
                     object_n = len(detected_object_list)
                     self.logger.debug("Detected {n} object!".format(n=object_n))
@@ -60,11 +57,7 @@ class SemaphoreDetectionThread(ThreadWithStop):
 
             except EOFError:
                 self.logger.error("Input connection has been closed")
-            self._running = False
-
-            except Exception:
-             print("here is  an exception")
-
+                self._running = False
 
     def stop(self):
         self.logger.debug("Forced the interruption of the computation")

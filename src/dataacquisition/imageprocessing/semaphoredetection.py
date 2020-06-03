@@ -43,7 +43,7 @@ class SemaphoreDetection:
     def getBlobOfInterst(self):        #定义想要识别的目标方法，返回list
         return self.BoI
 
-    def detectColor(self,image):  # receives an ROI containing a single light
+    def detectColor(self, image):  # receives an ROI containing a single light
         # convert RGB image to HSV
         hsv_img = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
@@ -93,7 +93,7 @@ class SemaphoreDetection:
         # return the resized image
         return resized
 
-    def detectState(self,image):
+    def detectState(self, image):
         image = self.imgResize(image, 200)
         (height, width) = image.shape[:2]
         output = image.copy()
@@ -112,6 +112,7 @@ class SemaphoreDetection:
                 color = self.detectColor(roi)
                 if color > 0:
                     overallState = color
+
         return overallState
 
     def plot_light_result(self,images):        #it should be modified to write in videos by using camraspoofer?
