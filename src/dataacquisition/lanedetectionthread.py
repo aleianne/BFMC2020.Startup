@@ -81,7 +81,7 @@ class LaneDetectionThread(ThreadWithStop):
 
                 else:
                     self.edge_detection.initDetection()
-                    if self.edge_detection.laneDetection(gray_image, time):
+                    if (self.edge_detection.laneDetection(image, time)).any():
 
                         left_lane = self.edge_detection.getLastDetectedLLane()
                         right_lane = self.edge_detection.getLastDetectedRLane()

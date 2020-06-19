@@ -1,0 +1,2 @@
+2020-05-26 01:35:14,825 - bfmc.laneDetection.laneDetectionThread - INFO - Started lane detection
+2020-05-26 01:35:14,827 - bfmc.objectDetection.signDetectionThread - INFO - Started traffic sign detection
