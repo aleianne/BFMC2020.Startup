@@ -5,7 +5,6 @@
 from src.utils.templates.workerprocess import WorkerProcess
 from src.dataacquisition.lanedetectionthread import LaneDetectionThread
 from src.dataacquisition.testcmdthread import TestCmdThread
-from src.dataacquisition.datasubscriberthread import DataSubscriberThread
 
 from queue import Queue
 from threading import Condition
@@ -42,4 +41,3 @@ class LaneDetectionProcess(WorkerProcess):
 
         self.threads.append(LaneDetectionThread(self.in_conn, self.lane_queue, self.cv))
         #self.threads.append(TestCmdThread(self.outPs))
-        self.threads.append(DataSubscriberThread(self.out_conn, self.lane_queue, self.cv))

@@ -33,7 +33,7 @@ from threading       import Thread
 
 from src.utils.templates.workerprocess import WorkerProcess
 
-class CameraSpooferProcess(WorkerProcess):     #继承workerprocess
+class CameraSpooferProcess(WorkerProcess):
 
     #================================ INIT ===============================================
     def __init__(self, inPs,outPs, videoDir, ext = '.h264'):
@@ -78,7 +78,7 @@ class CameraSpooferProcess(WorkerProcess):     #继承workerprocess
             A list of the files in the folder with the specified file extension. 
         """
        
-        files =  glob.glob(inputDir + '/*' + ext)  
+        files = glob.glob(inputDir + '/*' + ext)
         return files
 
     # ===================================== INIT THREADS =================================
@@ -99,26 +99,21 @@ class CameraSpooferProcess(WorkerProcess):     #继承workerprocess
         videos : list(string)
             The list of files with the videos. 
         """
-        print("before while in cameraspoofer")  #ceshi
+
         while True:
             for video in videos:
-                print(video)  #ceshi
-                cap         =   cv2.VideoCapture(video)
+                print(video)
+                cap = cv2.VideoCapture(video)
                 
                 while True:
                     ret, frame = cap.read()
                     stamp = time.time()
-                    print("i am inside cameraspoofer")     #ceshi
+
                     if ret: 
                         frame = cv2.resize(frame, self.videoSize)
-
-
                         for p in self.outPs:
                             p.send([[stamp], frame])
-                            print("i am cameraspoonfer")    #ceshi
-                               
                     else:
                         break
 
                 cap.release()
-

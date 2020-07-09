@@ -49,8 +49,6 @@ from src.utils.camerastreamer.camerastreamer import CameraStreamer
 from src.utils.cameraspoofer.cameraspooferprocess import CameraSpooferProcess
 from src.utils.remotecontrol.remotecontrolreceiver import RemoteControlReceiver
 
-from src.dataacquisition.lanedetectionprocess import LaneDetectionProcess
-from src.dataacquisition.sensordatahandler import SensorDataHandler
 from src.dataacquisition.objectdetectionprocess import ObjectDetectionProcess
 from src.utils.debugger.initlogger import InitLogger
 
@@ -90,37 +88,22 @@ def entry_point():
     # allProcesses.append(gpsProc)
 
     if enableExec:
-        # before to create all the interconnection and the process
-        # initialize the logger object
+
+        # initialize logger object
         init_logger = InitLogger()
-        print("i am here")
-        camStR,camStS = Pipe(duplex=False)   #camera - streamer
-        # create a connection between the camera and the Lane Detector
-        cameraStrR, cameraStrS = Pipe(duplex=False)
-        # create a connection between the camera handler and the Object Detector
-        cameraStr2R, cameraStr2S = Pipe(duplex=False)
-        # create a connection between the serial handler and the Lane Detector
-        commandR, commandS = Pipe(duplex=False)
-        # create a connection between the serial handler and the Object Detector
-        command2R, command2S = Pipe(duplex=False)
-        # create a connection between the serial handler and the Sensor Data Acquirer
-        msrAcqR, msrAcqS = Pipe(duplex=False)
 
-        #cameraProc = CameraProcess([], [cameraStrS, cameraStr2S])
-        #allProcesses.append(cameraProc)
+        # create a connection between the video source and the object detector
+        camStR, camStS = Pipe(duplex=False)
 
-        camSpoofer = CameraSpooferProcess([], [camStS], 'training',".h264")
-        #laneDetecProc = LaneDetectionProcess([cameraStrR], [commandS])
-        #allProcesses.append(laneDetecProc)
+        camSpoofer = CameraSpooferProcess([], [camStS], '/home/alessandro/PycharmProjects/BFMC/videos', ext='.avi')
+        allProcesses.append(camSpoofer)
 
-        objectDetecProc = ObjectDetectionProcess([cameraStr2R], [command2S])
+        objectDetecProc = ObjectDetectionProcess([camStR], [])
         allProcesses.append(objectDetecProc)
 
-        #serialhandler = SerialHandler([commandR, command2R], [msrAcqS])
+        # serialhandler = SerialHandler([commandR, command2R], [msrAcqS])
         # allProcesses.append(serialhandler)
 
-        dataHandler = SensorDataHandler([msrAcqR], [])
-        allProcesses.append(dataHandler)
 
     # ===================================== CONTROL ==========================================
     # ------------------- remote controller -----------------------

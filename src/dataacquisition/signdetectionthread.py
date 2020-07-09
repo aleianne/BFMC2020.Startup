@@ -1,76 +1,94 @@
 from src.utils.templates.threadwithstop import ThreadWithStop
-from src.dataacquisition.imageprocessing.imagesegmentation import ImageSegmentation
-from src.dataacquisition.imageclassification.signclassification import SignClassification
-from src.utils.debugger.videologger import VideoLogger
+from src.utils.debugger.initlogger import InitLogger
 
 import logging
+import cv2
+import numpy as np
 
 
 class SignDetectionThread(ThreadWithStop):
 
-    def __init__(self, in_conn, video_debug=False):
+    def __init__(self, in_conn):
         super(SignDetectionThread, self).__init__()
         self.in_conn = in_conn
-        #self.out_queue = out_queue
-
-        #self.cv = cv
-
         self.logger = logging.getLogger("bfmc.objectDetection.signDetectionThread")
 
-        if video_debug:
-            self.video_logger = VideoLogger()
-
-        self.image_segmentation = ImageSegmentation()
-        self.dnn = SignClassification()
-
-
-        self.sign_detected = False
-
-        self.last_ts = None                 # last frame timestamp
-        self.last_dts = None                # last frame with traffic sign detected
-
-    def _writeTrafficSignDetected(self, det_ts):
-        pass
-    #    with self.cv:
-     #       for ts in det_ts:
-      #          self.out_queue.put(ts)
-       #     self.cv.notify()
+        initLogger = InitLogger()
+        self.debug_directory = initLogger.getDebugDir()
 
     def run(self):
-
         self.logger.info("Started traffic sign detection")
 
         while self._running:
-            print("here is before try")  #测试
             try:
                 # retrieve the image and the timestamp from the input connection
                 data = self.in_conn.recv()
                 timestamp = data[0][0]
                 image = data[1]
-
-                self.image_segmentation.detectObjectOfInterest(image)
-                print("I AM HERE 01")   #测试
-                if self.image_segmentation.getObjectDetected():
-                    self.last_dts = timestamp
-                    self.sign_detected = True
-                    detected_object_list = self.image_segmentation.getObjectDetected()
-                    self._writeTrafficSignDetected(detected_object_list)
-
-                    object_n = len(detected_object_list)
-                    self.logger.debug("Detected {n} object!".format(n=object_n))
-                else:
-                    self.logger.debug("No object has been detected")
-                    self.sign_detected = False
-
-                self.last_ts = timestamp
-
-            except EOFError: 
+                self._performDetection(image, timestamp)
+            except EOFError:
                 self.logger.error("Input connection has been closed")
                 self._running = False
-
-            except Exception:
-                print("here is  an exception")
 
     def stop(self):
         self.logger.debug("Forced the interruption of the computation")
         self._running = False
+
+    def _saveImages(self, images, timestamp):
+        i = 0
+        for image in images:
+            if len(image) != 0:
+                image_name = str(timestamp) + '_' + str(i) + '.jpg'
+                i += 1
+                path = self.debug_directory / image_name
+                cv2.imwrite(str(path), image)
+
+    def _performDetection(self, image, timestamp):
+        images = []
+
+        # convert colors
+        hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+        blue_lower = np.array([100, 50, 50])
+        blue_upper = np.array([124, 255, 255])
+
+        # mask
+        mask = cv2.inRange(hsv, blue_lower, blue_upper)
+        blurred = cv2.blur(mask, (9, 9))
+        images.append(blurred)
+
+        # binarization
+        ret, binary = cv2.threshold(blurred, 127, 255, cv2.THRESH_BINARY)
+        images.append(binary)
+
+        # closed
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (21, 7))
+        closed = cv2.morphologyEx(binary, cv2.MORPH_CLOSE, kernel)
+
+        # erode and dilate
+        erode = cv2.erode(closed, None, iterations=4)
+        dilate = cv2.dilate(erode, None, iterations=4)
+
+        contours, hierarchy = cv2.findContours(dilate.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        res = image.copy()
+
+        for con in contours:
+            rect = cv2.minAreaRect(con)
+            # box
+            box = cv2.boxPoints(rect)
+            box = np.int0(box)
+            # the segmentation area on original image
+            cv2.drawContours(res, [box], -1, (0, 0, 255), 2)
+            #print([box])
+            # the dimension of matrix
+            h1 = min(box.max(axis=0))
+            h2 = min(box.min(axis=0))
+            l1 = max(box.max(axis=1))
+            l2 = min(box.max(axis=1))
+
+            # make sure if the area is accurate
+            if h1 - h2 > 0 and l1 - l2 > 0:
+                # segmentation
+                temp = image[h2:h1, l2:l1]
+                images.append(temp)
+
+        self._saveImages(images, timestamp)
