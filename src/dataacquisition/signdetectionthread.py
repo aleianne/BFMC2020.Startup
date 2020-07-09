@@ -8,13 +8,16 @@ import numpy as np
 
 class SignDetectionThread(ThreadWithStop):
 
-    def __init__(self, in_conn):
+    def __init__(self, in_conn, out_conn=None, debug=False):
         super(SignDetectionThread, self).__init__()
         self.in_conn = in_conn
+        self.out_conn = out_conn
+        self.debug = debug
         self.logger = logging.getLogger("bfmc.objectDetection.signDetectionThread")
 
-        initLogger = InitLogger()
-        self.debug_directory = initLogger.getDebugDir()
+        if self.debug:
+            initLogger = InitLogger()
+            self.debug_directory = initLogger.getDebugDir()
 
     def run(self):
         self.logger.info("Started traffic sign detection")
@@ -54,11 +57,9 @@ class SignDetectionThread(ThreadWithStop):
         # mask
         mask = cv2.inRange(hsv, blue_lower, blue_upper)
         blurred = cv2.blur(mask, (9, 9))
-        images.append(blurred)
 
         # binarization
         ret, binary = cv2.threshold(blurred, 127, 255, cv2.THRESH_BINARY)
-        images.append(binary)
 
         # closed
         kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (21, 7))
@@ -68,6 +69,7 @@ class SignDetectionThread(ThreadWithStop):
         erode = cv2.erode(closed, None, iterations=4)
         dilate = cv2.dilate(erode, None, iterations=4)
 
+        # compute image contours
         contours, hierarchy = cv2.findContours(dilate.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         res = image.copy()
 
@@ -78,17 +80,22 @@ class SignDetectionThread(ThreadWithStop):
             box = np.int0(box)
             # the segmentation area on original image
             cv2.drawContours(res, [box], -1, (0, 0, 255), 2)
-            #print([box])
+
             # the dimension of matrix
             h1 = min(box.max(axis=0))
             h2 = min(box.min(axis=0))
             l1 = max(box.max(axis=1))
-            l2 = min(box.max(axis=1))
+            l2 = min(box.min(axis=1))
+
+            box_h = h1 - h2
+            box_w = l1 - l2
 
             # make sure if the area is accurate
-            if h1 - h2 > 0 and l1 - l2 > 0:
+            if (50 < box_h < 70) and (50 < box_w < 70):
                 # segmentation
                 temp = image[h2:h1, l2:l1]
                 images.append(temp)
+                images.append(res)
 
-        self._saveImages(images, timestamp)
+        if self.debug:
+            self._saveImages(images, timestamp)
