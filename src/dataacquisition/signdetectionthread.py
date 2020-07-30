@@ -8,11 +8,11 @@ import numpy as np
 
 class SignDetectionThread(ThreadWithStop):
 
-    def __init__(self, in_conn, out_conn=None, debug=False):
+    def __init__(self, in_conn, queue=None, debug=False):
         super(SignDetectionThread, self).__init__()
         self.in_conn = in_conn
-        self.out_conn = out_conn
         self.debug = debug
+        self.queue = queue
         self.logger = logging.getLogger("bfmc.objectDetection.signDetectionThread")
 
         if self.debug:
@@ -91,7 +91,7 @@ class SignDetectionThread(ThreadWithStop):
             box_w = l1 - l2
 
             # make sure if the area is accurate
-            if (50 < box_h < 70) and (50 < box_w < 70):
+            if (2 < box_h < 100) and (2 < box_w < 100):
                 # segmentation
                 temp = image[h2:h1, l2:l1]
                 images.append(temp)
